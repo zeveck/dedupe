@@ -4,7 +4,7 @@ Perceptual hash generation module for creating image fingerprints.
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 import imagehash
-from PIL import Image, ExifTags
+from PIL import Image
 from dataclasses import dataclass
 from tqdm import tqdm
 import os

@@ -187,10 +187,12 @@ class QualityAssessor:
         multiplier = format_multipliers.get(format_name.upper(), 1.0)
         
         # Logarithmic scale for file size (in bytes)
-        # 100KB = ~10 points, 1MB = ~20 points, 10MB = ~30 points
+        # 1KB = ~6 points, 100KB = ~10 points, 1MB = ~12 points, 10MB = ~16 points, 100MB = ~20 points
         log_size = math.log10(max(1, file_size))
-        normalized_score = (log_size / 8.0) * 100 * multiplier  # Assume 100MB as max
-        return min(100.0, normalized_score)
+        # Use log10(100MB) = 8 as reasonable maximum, but don't cap at 100%
+        base_score = (log_size / 10.0) * 100  # More reasonable scaling
+        final_score = base_score * multiplier
+        return min(100.0, final_score)
     
     def _assess_sharpness(self, img: Image.Image) -> float:
         """

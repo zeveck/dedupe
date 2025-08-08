@@ -1,8 +1,7 @@
 # Project specific
-auGHOST*
-output*
 test_images/
 dedup_report_*.json
+.claude/
 
 # Python
 __pycache__/

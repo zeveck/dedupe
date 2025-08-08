@@ -3,7 +3,6 @@ Duplicate detection module for finding similar images using perceptual hashes.
 """
 from typing import List, Dict, Set, Tuple
 from dataclasses import dataclass
-from collections import defaultdict
 from hash_generator import ImageHashResult, HashGenerator
 from tqdm import tqdm
 
@@ -207,7 +206,7 @@ class DuplicateDetector:
         print(f"\nDuplicate groups (showing first 10):")
         for i, group in enumerate(duplicate_groups[:10], 1):
             print(f"\nGroup {i} ({len(group)} images):")
-            print(f"  → KEEP: {group.representative.file_path.name} "
+            print(f"  KEEP: {group.representative.file_path.name} "
                   f"({group.representative.image_width}x{group.representative.image_height}, "
                   f"{group.representative.file_size:,} bytes, {group.representative.format})")
             

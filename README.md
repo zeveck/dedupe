@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Image Deduplication Tool
 
 A Python tool that intelligently removes duplicate images from directories using perceptual hashing. It detects visually similar images (not just exact duplicates) and keeps the highest quality version from each group.
@@ -217,3 +218,7 @@ This tool is provided as-is for personal and educational use. Please respect cop
 
 **Created by:** Rich Conlan  
 **Code Development:** Entirely written by Claude Code (Anthropic's AI coding assistant)
+=======
+# dedupe
+Python script to produce an output directory of the unique images from a source directory, preferentially keeping the highest quality copy of a given image. Written using Claude Code.
+>>>>>>> 5a42ce74f762c87da9ab433f4f5f4a531e036aa2

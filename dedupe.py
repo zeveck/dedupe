@@ -30,10 +30,15 @@ from typing import List, Optional
               help='Suppress progress bars and verbose output')
 @click.option('--hash-size', default=8, type=int,
               help='Hash size for perceptual hashing (8 or 16). Default: 8')
+@click.option('--sample', type=int,
+              help='Process only the first N images (for testing/debugging)')
+@click.option('--verbose-errors', is_flag=True,
+              help='Show all errors in console output (not just first 10)')
 @click.help_option("-h", "--help")
 def main(input_directory: str, output_directory: str, threshold: int, agreement: int,
          extensions: tuple, preserve_structure: bool, dry_run: bool, 
-         report: Optional[str], quiet: bool, hash_size: int):
+         report: Optional[str], quiet: bool, hash_size: int, 
+         sample: Optional[int], verbose_errors: bool):
     """
     Image Deduplication Tool
     
@@ -106,7 +111,7 @@ def main(input_directory: str, output_directory: str, threshold: int, agreement:
         
         # Step 1: Scan for images
         if not quiet:
-            click.echo("🔍 Scanning for images...")
+            click.echo("Scanning for images...")
         
         try:
             image_paths = scanner.scan_directory(input_directory, show_progress=not quiet)
@@ -121,9 +126,15 @@ def main(input_directory: str, output_directory: str, threshold: int, agreement:
         if not quiet:
             click.echo(f"Found {len(image_paths)} images")
         
+        # Apply sample limit if specified
+        if sample and sample < len(image_paths):
+            if not quiet:
+                click.echo(f"SAMPLE MODE: Processing first {sample} of {len(image_paths)} images")
+            image_paths = image_paths[:sample]
+        
         # Step 2: Generate perceptual hashes
         if not quiet:
-            click.echo("🔐 Generating perceptual hashes...")
+            click.echo("Generating perceptual hashes...")
         
         try:
             hash_results = hash_generator.generate_hashes(image_paths, show_progress=not quiet)
@@ -134,15 +145,45 @@ def main(input_directory: str, output_directory: str, threshold: int, agreement:
         # Report any images that failed to process
         failed_images = [r for r in hash_results if r.error]
         if failed_images and not quiet:
-            click.echo(f"⚠️  Failed to process {len(failed_images)} images:")
-            for result in failed_images[:5]:  # Show first 5 failures
+            # Create error log file
+            from datetime import datetime
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            error_log_path = f"dedupe_errors_{timestamp}.log"
+            
+            # Write full error log
+            with open(error_log_path, 'w') as f:
+                f.write(f"Image Deduplication Error Log\n")
+                f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write(f"Total Errors: {len(failed_images)}\n\n")
+                
+                for result in failed_images:
+                    f.write(f"{result.file_path}: {result.error}\n")
+                
+                # Error summary
+                error_types = {}
+                for result in failed_images:
+                    error_msg = str(result.error).split(':')[0] if ':' in str(result.error) else str(result.error)
+                    error_types[error_msg] = error_types.get(error_msg, 0) + 1
+                
+                f.write(f"\nERROR SUMMARY:\n")
+                for error_type, count in sorted(error_types.items(), key=lambda x: x[1], reverse=True):
+                    f.write(f"{error_type}: {count} occurrences\n")
+            
+            # Console output
+            click.echo(f"WARNING: Failed to process {len(failed_images)} images:")
+            display_count = len(failed_images) if verbose_errors else min(10, len(failed_images))
+            
+            for i, result in enumerate(failed_images[:display_count]):
                 click.echo(f"   {result.file_path.name}: {result.error}")
-            if len(failed_images) > 5:
-                click.echo(f"   ... and {len(failed_images) - 5} more")
+            
+            if len(failed_images) > display_count:
+                click.echo(f"   ... and {len(failed_images) - display_count} more")
+            
+            click.echo(f"Full error details saved to: {error_log_path}")
         
         # Step 3: Detect duplicates
         if not quiet:
-            click.echo("🔍 Detecting duplicate images...")
+            click.echo("Detecting duplicate images...")
         
         try:
             duplicate_groups = duplicate_detector.find_duplicates(hash_results, show_progress=not quiet)
@@ -160,7 +201,7 @@ def main(input_directory: str, output_directory: str, threshold: int, agreement:
             # Still organize files (just copies everything)
         
         # Step 5: Organize files
-        action = "📋 Simulating file organization..." if dry_run else "📁 Organizing files..."
+        action = "Simulating file organization..." if dry_run else "Organizing files..."
         if not quiet:
             click.echo(action)
         
@@ -183,13 +224,13 @@ def main(input_directory: str, output_directory: str, threshold: int, agreement:
             try:
                 report_path = file_organizer.save_report(organization_report, Path(report))
                 if not quiet:
-                    click.echo(f"📄 Detailed report saved to: {report_path}")
+                    click.echo(f"Detailed report saved to: {report_path}")
             except Exception as e:
                 click.echo(f"Warning: Failed to save report: {e}", err=True)
         
         # Step 8: Final summary
         if not quiet:
-            click.echo(f"\n✅ {'Simulation' if dry_run else 'Operation'} completed successfully!")
+            click.echo(f"\n{'Simulation' if dry_run else 'Operation'} completed successfully!")
             if dry_run:
                 click.echo("Run without --dry-run to actually copy the files.")
         else:
@@ -199,7 +240,7 @@ def main(input_directory: str, output_directory: str, threshold: int, agreement:
                       f"{'would copy' if dry_run else 'copied'} {organization_report.unique_images_copied} unique images")
     
     except KeyboardInterrupt:
-        click.echo("\n⚠️  Operation cancelled by user", err=True)
+        click.echo("\nOperation cancelled by user", err=True)
         sys.exit(1)
     except Exception as e:
         click.echo(f"Unexpected error: {e}", err=True)
