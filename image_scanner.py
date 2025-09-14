@@ -73,17 +73,9 @@ class ImageScanner:
         extension = file_path.suffix.lower()
         return extension in self.supported_extensions
     
-    def get_supported_extensions(self) -> Set[str]:
-        """Return set of supported file extensions."""
-        return self.supported_extensions.copy()
-    
     def add_extension(self, extension: str) -> None:
         """Add a new supported file extension."""
         self.supported_extensions.add(extension.lower())
-    
-    def remove_extension(self, extension: str) -> None:
-        """Remove a supported file extension."""
-        self.supported_extensions.discard(extension.lower())
 
 
 def scan_for_images(directory_path: str, extensions: Set[str] = None) -> List[Path]:

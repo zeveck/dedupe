@@ -68,7 +68,6 @@ def main(input_directory: str, output_directory: str, threshold: int, agreement:
         from image_scanner import ImageScanner
         from hash_generator import HashGenerator
         from duplicate_detector import DuplicateDetector
-        from quality_assessor import QualityAssessor
         from file_organizer import FileOrganizer
     except ImportError as e:
         click.echo(f"Error: Missing dependencies. Please run: pip install -r requirements.txt", err=True)
@@ -269,7 +268,6 @@ def analyze(directory: str, threshold: int, agreement: int):
         from image_scanner import ImageScanner
         from hash_generator import HashGenerator
         from duplicate_detector import DuplicateDetector
-        from quality_assessor import QualityAssessor
         from file_organizer import FileOrganizer
     except ImportError as e:
         click.echo(f"Error: Missing dependencies. Please run: pip install -r requirements.txt", err=True)

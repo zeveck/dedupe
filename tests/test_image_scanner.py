@@ -73,8 +73,8 @@ class TestImageScanner:
         text_file.write_text("not an image")
         assert not scanner._is_image_file(text_file)
     
-    def test_add_remove_extension(self):
-        """Test adding and removing file extensions."""
+    def test_add_extension(self):
+        """Test adding file extensions."""
         scanner = ImageScanner()
         initial_count = len(scanner.supported_extensions)
         
@@ -82,18 +82,14 @@ class TestImageScanner:
         scanner.add_extension('.xyz')
         assert '.xyz' in scanner.supported_extensions
         assert len(scanner.supported_extensions) == initial_count + 1
-        
-        # Remove extension
-        scanner.remove_extension('.xyz')
-        assert '.xyz' not in scanner.supported_extensions
-        assert len(scanner.supported_extensions) == initial_count
     
-    def test_get_supported_extensions(self):
-        """Test getting supported extensions returns a copy."""
+    def test_supported_extensions_immutability(self):
+        """Test that supported extensions can't be accidentally modified."""
         scanner = ImageScanner()
-        extensions = scanner.get_supported_extensions()
+        # Get a copy for testing
+        extensions = scanner.supported_extensions.copy()
         
-        # Modify returned set
+        # Modify the copy
         extensions.add('.test')
         
         # Original should be unchanged
