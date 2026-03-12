@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Image Deduplication Tool
 
 A Python tool that intelligently removes duplicate images from directories using perceptual hashing. It detects visually similar images (not just exact duplicates) and keeps the highest quality version from each group.
